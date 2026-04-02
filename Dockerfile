@@ -43,4 +43,4 @@ EXPOSE 8000
 # -w 4: 运行 4 个 worker 进程，可以根据 CPU 核心数调整
 # -k uvicorn.workers.UvicornWorker: 使用 uvicorn worker 类型，以便兼容 ASGI 应用
 # app:app: 指的是 app.py 文件中的 app 对象
-CMD ["python", "-m", "gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "app:app", "--bind", "0.0.0.0:8000"]
+CMD ["/usr/local/bin/python", "-m", "gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "app:app", "--bind", "0.0.0.0:8000"]
