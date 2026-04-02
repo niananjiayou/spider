@@ -53,19 +53,23 @@ def init_browser():
     """初始化浏览器（全局单例）"""
     global dp
     if dp is None:
-        co = ChromiumOptions()
+        # 在 Docker 或无头环境中运行 Chromium 所需的参数
+        browser_args = [
+            '--no-sandbox',             # 在 Docker/Linux 中运行 Chromium 几乎是必需的
+            '--disable-gpu',            # 推荐用于无头环境
+            '--disable-dev-shm-usage',  # 解决 Docker 容器中 /dev/shm 内存不足问题
+            '--headless=new',           # 显式设置新的无头模式
+            '--window-size=1920,1080',  # 设置默认窗口大小
+            '--log-level=3',            # 抑制 Chromium 自身的过多日志
+            '--disable-setuid-sandbox', # 另一个与沙箱相关的参数
+        ]
+
+        # 将参数列表传递给 ChromiumOptions 构造函数
+        co = ChromiumOptions(arguments=browser_args)
         co.set_browser_path('/usr/bin/chromium')
-
-        # === 关键修改从这里开始 ===
-        # 1. 移除 co.set_local_port(9333)，让 DrissionPage 自己启动并管理浏览器进程
-        # co.set_local_port(9333) # 移除或注释掉这一行
-
-        # 2. 使用新的无头模式，并添加 Docker/Linux 环境所需的参数
-        co.headless(True)  # 明确使用新的无头模式
-        co.add_argument('--no-sandbox')  # 在 Docker 环境中几乎是必需的，防止沙箱冲突
-        co.add_argument('--disable-gpu') # 在无头模式下禁用 GPU，推荐
-        co.add_argument('--disable-dev-shm-usage') # 解决 Docker 容器中 /dev/shm 内存不足问题
-        # === 关键修改到此结束 ===
+        
+        # 移除了 co.headless(new=True)，因为 '--headless=new' 已经在 browser_args 中设置
+        # 移除了 co.set_local_port(9333)，因为这是连接到现有浏览器，而非启动新浏览器
 
         dp = ChromiumPage(co)
     return dp
