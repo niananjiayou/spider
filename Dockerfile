@@ -19,9 +19,9 @@ RUN apt-get update && apt-get install -y \
     libnss3 \
     libxss1 \
     xdg-utils \
-    --no-install-recommends \
-    && apt-get clean \             # 清理 apt 缓存
-    && rm -rf /var/lib/apt/lists/* # 移除包列表，进一步减小镜像
+    --no-install-recommends && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # 设置 Chromium 的环境变量，确保 DrissionPage 能找到它
 ENV CHROMIUM_BIN /usr/bin/chromium
