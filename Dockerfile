@@ -41,4 +41,4 @@ EXPOSE 8000
 
 # 启动 Gunicorn 服务器来运行 FastAPI 应用
 # 关键修改：将 workers 数量从 4 减少到 1
-CMD ["/usr/local/bin/python", "-m", "gunicorn", "-w", "1", "-k", "uvicorn.workers.UvicornWorker", "app:app", "--bind", "0.0.0.0:8000"]
+CMD ["/usr/local/bin/python", "-m", "gunicorn", "-w", "1", "-k", "uvicorn.workers.UvicornWorker", "app:app", "--bind", "0.0.0.0:8000", "--timeout", "120"]
