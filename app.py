@@ -60,12 +60,14 @@ def init_browser():
     global dp
     if dp is None:
         co = ChromiumOptions()
-        # ✅ 移除硬编码路径，让 DrissionPage 自动找
-        # 或者在 Linux 上指定正确的路径
-        co.set_local_port(9333)
+        # 在 Docker 容器中，Chromium 的路径通常是 /usr/bin/chromium
+        # 确保 DRISSION_PAGE_BROWSER_PATH 环境变量也设置了 /usr/bin/chromium
+        co.set_browser_path('/usr/bin/chromium')
+        co.set_local_port(9333) # 保持这个设置
+        co.headless() # 在服务器上通常运行无头模式
         dp = ChromiumPage(co)
     return dp
-
+    
 # ===== 爬虫核心函数（从 c.py 直接移植）=====
 
 def fetch_page(dp, page_num, body_json, post_single, template_params):
@@ -277,24 +279,4 @@ async def fetch_reviews(request: SpiderRequest) -> SpiderResponse:
             total_count=0
         )
 
-if __name__ == "__main__":
-    import uvicorn
-    
-    print("""
-    ╔════════════════════════════════════════════════╗
-    ║   言之有"品" - 爬虫服务启动                        ║
-    ║                                                ║
-    ║   📍 运行地址: http://0.0.0.0:8000            ║
-    ║   📖 API文档: http://0.0.0.0:8000/docs        ║
-    ║   🔗 爬虫接口: POST /spider/fetch_reviews      ║
-    ║                                                ║
-    ║   按 Ctrl+C 停止服务                           ║
-    ╚════════════════════════════════════════════════╝
-    """)
-    
-    uvicorn.run(
-        app, 
-        host="0.0.0.0", 
-        port=8000,
-        reload=False  # ⚠️ Render 生产环境不需要 reload
-    )
+
