@@ -33,9 +33,6 @@ COPY requirements.txt .
 RUN pip install --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
-# 添加一个调试步骤来验证 gunicorn 是否安装
-# RUN python -c "import gunicorn; print('Gunicorn is successfully installed within the Docker image!')"
-
 # 复制您的应用代码
 COPY . .
 
@@ -43,5 +40,5 @@ COPY . .
 EXPOSE 8000
 
 # 启动 Gunicorn 服务器来运行 FastAPI 应用
-# 明确地通过 'python -m gunicorn' 运行模块
-CMD ["/usr/local/bin/python", "-m", "gunicorn", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "app:app", "--bind", "0.0.0.0:8000"]
+# 关键修改：将 workers 数量从 4 减少到 1
+CMD ["/usr/local/bin/python", "-m", "gunicorn", "-w", "1", "-k", "uvicorn.workers.UvicornWorker", "app:app", "--bind", "0.0.0.0:8000"]
