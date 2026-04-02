@@ -1,17 +1,11 @@
-
-"""
-言之有"品" - 爬虫服务
-将原 c.py 改造成 FastAPI HTTP API 服务
-运行: python -m uvicorn spider_service:app --reload --host 0.0.0.0 --port 8000
-"""
+import json
+import time
+from urllib.parse import parse_qs, urlencode
+from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional
-import json
-import time
-from urllib.parse import parse_qs, urlencode
 
 try:
     from DrissionPage import ChromiumPage, ChromiumOptions
@@ -60,11 +54,19 @@ def init_browser():
     global dp
     if dp is None:
         co = ChromiumOptions()
-        # 在 Docker 容器中，Chromium 的路径通常是 /usr/bin/chromium
-        # 确保 DRISSION_PAGE_BROWSER_PATH 环境变量也设置了 /usr/bin/chromium
         co.set_browser_path('/usr/bin/chromium')
-        co.set_local_port(9333) # 保持这个设置
-        co.headless() # 在服务器上通常运行无头模式
+
+        # === 关键修改从这里开始 ===
+        # 1. 移除 co.set_local_port(9333)，让 DrissionPage 自己启动并管理浏览器进程
+        # co.set_local_port(9333) # 移除或注释掉这一行
+
+        # 2. 使用新的无头模式，并添加 Docker/Linux 环境所需的参数
+        co.headless(new=True)  # 明确使用新的无头模式
+        co.add_argument('--no-sandbox')  # 在 Docker 环境中几乎是必需的，防止沙箱冲突
+        co.add_argument('--disable-gpu') # 在无头模式下禁用 GPU，推荐
+        co.add_argument('--disable-dev-shm-usage') # 解决 Docker 容器中 /dev/shm 内存不足问题
+        # === 关键修改到此结束 ===
+
         dp = ChromiumPage(co)
     return dp
     
@@ -278,5 +280,3 @@ async def fetch_reviews(request: SpiderRequest) -> SpiderResponse:
             reviews=[],
             total_count=0
         )
-
-
