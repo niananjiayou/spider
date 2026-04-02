@@ -61,7 +61,7 @@ def init_browser():
         # co.set_local_port(9333) # 移除或注释掉这一行
 
         # 2. 使用新的无头模式，并添加 Docker/Linux 环境所需的参数
-        co.headless(new=True)  # 明确使用新的无头模式
+        co.headless(True)  # 明确使用新的无头模式
         co.add_argument('--no-sandbox')  # 在 Docker 环境中几乎是必需的，防止沙箱冲突
         co.add_argument('--disable-gpu') # 在无头模式下禁用 GPU，推荐
         co.add_argument('--disable-dev-shm-usage') # 解决 Docker 容器中 /dev/shm 内存不足问题
