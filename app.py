@@ -53,24 +53,31 @@ def init_browser():
     """初始化浏览器（全局单例）"""
     global dp
     if dp is None:
-        co = ChromiumOptions()
+        # 在 Docker 或无头环境中运行 Chromium 所需的参数
+        # 这些参数将在 ChromiumOptions 构造函数中传递
+        browser_arguments = [
+            '--no-sandbox',             # 在 Docker/Linux 中运行 Chromium 几乎是必需的
+            '--disable-gpu',            # 推荐用于无头环境
+            '--disable-dev-shm-usage',  # 解决 Docker 容器中 /dev/shm 内存不足问题
+            '--headless=new',           # 显式设置新的无头模式
+            '--window-size=1920,1080',  # 设置默认窗口大小，防止某些网站布局问题
+            '--log-level=3',            # 抑制 Chromium 自身的过多日志
+            '--disable-setuid-sandbox', # 另一个与沙箱相关的参数
+            '--disable-extensions',     # 禁用浏览器扩展
+            '--no-default-browser-check', # 不做默认浏览器检查
+            '--no-first-run',           # 第一次运行不显示欢迎页面
+            '--incognito',              # 隐身模式启动
+            '--single-process',         # 尝试单进程模式，有时有助于稳定性
+            '--remote-debugging-port=0' # 动态分配远程调试端口，而不是固定为9222
+        ]
+
+        # 重点：通过 'arguments' 参数在构造函数中传递所有浏览器启动参数
+        co = ChromiumOptions(arguments=browser_arguments)
         co.set_browser_path('/usr/bin/chromium')
         
-        # 设置无头模式
-        co.set_headless(True) 
+        # 再次明确设置无头模式，确保它被应用，即使已经在 arguments 中
+        co.set_headless(True) # 针对 DrissionPage 4.x 版本
 
-        # 逐个添加其他浏览器启动参数
-        # 对于没有值的参数（flag），只传入参数名
-        co.set_argument('no-sandbox')             # 在 Docker/Linux 中运行 Chromium 几乎是必需的
-        co.set_argument('disable-gpu')            # 推荐用于无头环境
-        co.set_argument('disable-dev-shm-usage')  # 解决 Docker 容器中 /dev/shm 内存不足问题
-        # '--headless=new' 已经通过 co.set_headless(True) 间接设置
-        co.set_argument('disable-setuid-sandbox') # 另一个与沙箱相关的参数
-
-        # 对于有值的参数，传入参数名和值
-        co.set_argument('window-size', '1920,1080')  # 设置默认窗口大小
-        co.set_argument('log-level', '3')            # 抑制 Chromium 自身的过多日志
-        
         dp = ChromiumPage(co)
     return dp
     
@@ -180,7 +187,6 @@ async def fetch_reviews(request: SpiderRequest) -> SpiderResponse:
     请求示例:
     {
         "product_url": "https://item.jd.com/10127955410850.html",
-        "max_pages": 50
     }
     
     返回:
