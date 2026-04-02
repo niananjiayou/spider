@@ -64,9 +64,12 @@ def init_browser():
             '--disable-setuid-sandbox', # 另一个与沙箱相关的参数
         ]
 
-        # 将参数列表传递给 ChromiumOptions 构造函数
-        co = ChromiumOptions(arguments=browser_args)
+        co = ChromiumOptions() # 先创建一个 ChromiumOptions 对象
         co.set_browser_path('/usr/bin/chromium')
+        
+        # 然后逐个添加浏览器参数
+        for arg in browser_args:
+            co.add_argument(arg)
         
         # 移除了 co.headless(new=True)，因为 '--headless=new' 已经在 browser_args 中设置
         # 移除了 co.set_local_port(9333)，因为这是连接到现有浏览器，而非启动新浏览器
