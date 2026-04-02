@@ -53,27 +53,24 @@ def init_browser():
     """初始化浏览器（全局单例）"""
     global dp
     if dp is None:
-        # 在 Docker 或无头环境中运行 Chromium 所需的参数
-        browser_args = [
-            '--no-sandbox',             # 在 Docker/Linux 中运行 Chromium 几乎是必需的
-            '--disable-gpu',            # 推荐用于无头环境
-            '--disable-dev-shm-usage',  # 解决 Docker 容器中 /dev/shm 内存不足问题
-            '--headless=new',           # 显式设置新的无头模式
-            '--window-size=1920,1080',  # 设置默认窗口大小
-            '--log-level=3',            # 抑制 Chromium 自身的过多日志
-            '--disable-setuid-sandbox', # 另一个与沙箱相关的参数
-        ]
-
-        co = ChromiumOptions() # 先创建一个 ChromiumOptions 对象
+        co = ChromiumOptions()
         co.set_browser_path('/usr/bin/chromium')
         
-        # 然后逐个添加浏览器参数
-        for arg in browser_args:
-            co.add_argument(arg)
-        
-        # 移除了 co.headless(new=True)，因为 '--headless=new' 已经在 browser_args 中设置
-        # 移除了 co.set_local_port(9333)，因为这是连接到现有浏览器，而非启动新浏览器
+        # 设置无头模式
+        co.set_headless(True) 
 
+        # 逐个添加其他浏览器启动参数
+        # 对于没有值的参数（flag），只传入参数名
+        co.set_argument('no-sandbox')             # 在 Docker/Linux 中运行 Chromium 几乎是必需的
+        co.set_argument('disable-gpu')            # 推荐用于无头环境
+        co.set_argument('disable-dev-shm-usage')  # 解决 Docker 容器中 /dev/shm 内存不足问题
+        # '--headless=new' 已经通过 co.set_headless(True) 间接设置
+        co.set_argument('disable-setuid-sandbox') # 另一个与沙箱相关的参数
+
+        # 对于有值的参数，传入参数名和值
+        co.set_argument('window-size', '1920,1080')  # 设置默认窗口大小
+        co.set_argument('log-level', '3')            # 抑制 Chromium 自身的过多日志
+        
         dp = ChromiumPage(co)
     return dp
     
