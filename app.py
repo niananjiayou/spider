@@ -60,10 +60,9 @@ def init_browser():
     global dp
     if dp is None:
         co = ChromiumOptions()
-        # ⚠️ 根据你的电脑环境修改这两个路径
-        co.set_browser_path(r'C:\Program Files\Google\Chrome\Application\chrome.exe')
+        # ✅ 移除硬编码路径，让 DrissionPage 自动找
+        # 或者在 Linux 上指定正确的路径
         co.set_local_port(9333)
-        co.set_user_data_path(r'D:\chrome_debug_profile')
         dp = ChromiumPage(co)
     return dp
 
